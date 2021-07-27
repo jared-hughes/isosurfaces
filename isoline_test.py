@@ -3,7 +3,7 @@ import numpy as np
 
 
 def f(x, y):
-    return y ** 2 - x ** 3 + x - 0.3
+    return y ** 2 - x ** 3 + x
 
 
 curves = plot_implicit(

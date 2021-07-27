@@ -1,4 +1,4 @@
-#  to support Quad type inside Quad
+# to support Quad type inside Quad
 from __future__ import annotations
 import numpy as np
 from typing import Callable, List, Tuple, Union
@@ -254,21 +254,25 @@ class Triangulator:
         y = b.vertices[1]
 
         # Simple connections: inside the same four triangles
-        if center.val > 0 > y.val:
+        # (Group 0 with negatives)
+        if center.val > 0 >= y.val:
             b.set_next(c)
-        if x.val > 0 > center.val:
+        # (Group 0 with negatives)
+        if x.val > 0 >= center.val:
             b.set_next(a)
 
         # More difficult connections: complete a hanging connection
         # or wait for another triangle to complete this
         # We index using (double) the midpoint of the hanging edge
         id = (x.pos + y.pos).data.tobytes()
-        if y.val > 0 > x.val:
+
+        # (Group 0 with negatives)
+        if y.val > 0 >= x.val:
             if id in self.hanging_next:
                 b.set_next(self.hanging_next[id])
             else:
                 self.hanging_next[id] = b
-        elif y.val < 0 < x.val:
+        elif y.val <= 0 < x.val:
             if id in self.hanging_next:
                 self.hanging_next[id].set_next(b)
             else:
@@ -276,7 +280,7 @@ class Triangulator:
 
     def get_edge_dual(self, p1: ValuedPoint, p2: ValuedPoint):
         """Returns the dual point on an edge p1--p2"""
-        if np.sign(p1.val) != np.sign(p1.val):
+        if (p1.val > 0) != (p1.val > 0):
             # The edge crosses the isoline, so take the midpoint
             return ValuedPoint.midpoint(p1, p2, self.fn)
         dt = 0.01
@@ -285,7 +289,8 @@ class Triangulator:
         df1 = self.fn(p1.pos * (1 - dt) + p2.pos * dt)
         # move slightly from p2 to p1. df = ∆f, so ∆f/∆t = -100*df2 near p2
         df2 = self.fn(p1.pos * dt + p2.pos * (1 - dt))
-        if np.sign(df1) == np.sign(df2):
+        # (Group 0 with negatives)
+        if (df1 > 0) == (df2 > 0):
             # The function either increases → ← or ← →, so a lerp would shoot out of bounds
             # Take the midpoint
             return ValuedPoint.midpoint(p1, p2, self.fn)
@@ -315,7 +320,10 @@ def binary_search_zero(p1: ValuedPoint, p2: ValuedPoint, fn: Func):
     else:
         # binary search
         mid = ValuedPoint.midpoint(p1, p2, fn)
-        if np.sign(mid.val) == np.sign(p1.val):
+        if mid.val == 0:
+            return mid, True
+        # (Group 0 with negatives)
+        elif (mid.val > 0) == (p1.val > 0):
             return binary_search_zero(mid, p2, fn)
         else:
             return binary_search_zero(p1, mid, fn)
@@ -360,7 +368,8 @@ class CurveTracer:
             self.active_curve.append(self.active_curve[0])
 
     def march_edge(self, p1: ValuedPoint, p2: ValuedPoint):
-        if p1.val > 0 > p2.val:
+        # (Group 0 with negatives)
+        if p1.val > 0 >= p2.val:
             intersection, is_zero = binary_search_zero(p1, p2, self.fn)
             if is_zero:
                 self.active_curve.append(intersection)
