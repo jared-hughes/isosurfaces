@@ -93,8 +93,8 @@ def should_descend_deep_quad(quad: Quad):
         return True
     else:
         # simple approach: only descend if we cross the isoline
-        # This could very much be improved, e.g. by incorporating gradient or second-derivative
-        # tests, etc., to descend in areas of high curvature near F=0
+        # TODO: This could very much be improved, e.g. by incorporating gradient or second-derivative
+        # tests, etc., to cancel descending in approximately linear regions
         return any(
             np.sign(v.val) != np.sign(quad.vertices[0].val) for v in quad.vertices[1:]
         )
@@ -103,15 +103,17 @@ def should_descend_deep_quad(quad: Quad):
 def build_quad_tree(
     fn: Func, pmin: Point, pmax: Point, min_depth: int, max_quads: int
 ) -> Quad:
+    # min_depth takes precedence over max_quads
+    max_quads = max(4 ** min_depth, max_quads)
     vertices = vertices_from_extremes(pmin, pmax, fn)
-    root = Quad(vertices, 0, [])
+    current_quad = root = Quad(vertices, 0, [])
     quad_queue = deque([root])
     leaf_count = 1
 
     while len(quad_queue) > 0 and leaf_count < max_quads:
         current_quad = quad_queue.popleft()
-        current_quad.compute_children(fn)
         if current_quad.depth < min_depth or should_descend_deep_quad(current_quad):
+            current_quad.compute_children(fn)
             quad_queue.extend(current_quad.children)
             # add 4 for the new quads, subtract 1 for the old quad not being a leaf anymore
             leaf_count += 3
@@ -357,10 +359,7 @@ class CurveTracer:
                 break
         while triangle is not None and not triangle.visited:
             for i in range(3):
-                self.march_edge(
-                    triangle.vertices[i],
-                    triangle.vertices[(i + 1) % 3]
-                )
+                self.march_edge(triangle.vertices[i], triangle.vertices[(i + 1) % 3])
             triangle.visited = True
             triangle = triangle.next
         if closed_loop:
