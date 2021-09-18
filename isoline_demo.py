@@ -1,5 +1,5 @@
 """ Code for demo-ing and experimentation. Prepare for a mess """
-from isoline import Quad, plot_implicit, build_quad_tree, Triangulator, CurveTracer
+from isoline import Cell, build_tree, Triangulator, CurveTracer
 import numpy as np
 import cairo
 
@@ -23,7 +23,7 @@ pmax = np.array([8, 6])
 
 # Here we directly use plot_implicit internals in order to see the quadtree
 fn = lambda u: f(u[0], u[1])
-quadtree = build_quad_tree(fn, pmin, pmax, min_depth, 5000)
+quadtree = build_tree(2, fn, pmin, pmax, min_depth, 5000)
 triangles = Triangulator(quadtree, fn).triangulate()
 curves = CurveTracer(triangles, fn).trace()
 
@@ -51,7 +51,7 @@ def draw_axes(c):
     c.restore()
 
 
-def draw_quad(c, quad: Quad):
+def draw_quad(c, quad: Cell):
     width = 0
     if quad.depth <= min_depth:
         width = 0.02
