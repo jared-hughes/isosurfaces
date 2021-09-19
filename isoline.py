@@ -57,10 +57,9 @@ class Triangulator:
     does not currently implement placing dual vertices based on the gradient.
     """
 
-    triangles: List[Triangle] = []
-    hanging_next = {}
-
     def __init__(self, root: Cell, fn: Func):
+        self.triangles: List[Triangle] = []
+        self.hanging_next = {}
         self.root = root
         self.fn = fn
 
