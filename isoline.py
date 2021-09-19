@@ -89,6 +89,7 @@ class Triangulator:
             self.triangulate_crossing_row(a, b.children[0])
             self.triangulate_crossing_row(a, b.children[2])
         else:
+            # a and b are minimal 2-cells
             face_dual_a = self.get_face_dual(a)
             face_dual_b = self.get_face_dual(b)
             # Add the four triangles from the centers of a and b to the shared edge between them
@@ -118,6 +119,7 @@ class Triangulator:
             self.triangulate_crossing_col(a, b.children[0])
             self.triangulate_crossing_col(a, b.children[1])
         else:
+            # a and b are minimal 2-cells
             face_dual_a = self.get_face_dual(a)
             face_dual_b = self.get_face_dual(b)
             # Add the four triangles from the centers of a and b to the shared edge between them
