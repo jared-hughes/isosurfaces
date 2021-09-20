@@ -14,9 +14,10 @@ def f(x, y):
 
 # Here we directly use plot_implicit internals in order to see the quadtree
 fn = lambda u: f(u[0], u[1])
-quadtree = build_tree(2, fn, pmin, pmax, min_depth, 5000)
+tol = (pmax - pmin) / 1000
+quadtree = build_tree(2, fn, pmin, pmax, min_depth, 5000, tol)
 triangles = Triangulator(quadtree, fn).triangulate()
-curves = CurveTracer(triangles, fn).trace()
+curves = CurveTracer(triangles, fn, tol).trace()
 
 
 def g(x, y):
@@ -98,6 +99,9 @@ def draw_bg(c):
 
 
 def draw_curves(c, curves_list, rgb):
+    print(
+        "drawing", sum(map(len, curves_list)), "segments in", len(curves_list), "curves"
+    )
     c.set_source_rgb(*rgb)
     # draw curves
     c.save()

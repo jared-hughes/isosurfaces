@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 from typing import Generator, List
-from point import Point, ValuedPoint, Func, TOL
+from point import Point, ValuedPoint, Func
 from collections import deque
 
 
@@ -99,8 +99,11 @@ class Cell(MinimalCell):
             yield None
 
 
-def should_descend_deep_cell(cell: Cell):
-    if np.max(cell.vertices[-1].pos - cell.vertices[0].pos) < TOL:
+def should_descend_deep_cell(cell: Cell, tol: np.ndarray):
+    if np.all(cell.vertices[-1].pos - cell.vertices[0].pos < 10 * tol):
+        # too small of a cell to be worth descending
+        # We compare to 10*tol instead of tol because the simplices are smaller than the quads
+        # The factor 10 itself is arbitrary.
         return False
     elif all(np.isnan(v.val) for v in cell.vertices):
         # in a region where the function is undefined
@@ -118,7 +121,13 @@ def should_descend_deep_cell(cell: Cell):
 
 
 def build_tree(
-    dim: int, fn: Func, pmin: Point, pmax: Point, min_depth: int, max_cells: int
+    dim: int,
+    fn: Func,
+    pmin: Point,
+    pmax: Point,
+    min_depth: int,
+    max_cells: int,
+    tol: np.ndarray,
 ) -> Cell:
     branching_factor = 1 << dim
     # min_depth takes precedence over max_quads
@@ -131,7 +140,9 @@ def build_tree(
 
     while len(quad_queue) > 0 and leaf_count < max_cells:
         current_quad = quad_queue.popleft()
-        if current_quad.depth < min_depth or should_descend_deep_cell(current_quad):
+        if current_quad.depth < min_depth or should_descend_deep_cell(
+            current_quad, tol
+        ):
             current_quad.compute_children(fn)
             quad_queue.extend(current_quad.children)
             # add 4 for the new quads, subtract 1 for the old quad not being a leaf anymore

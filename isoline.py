@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import List, Tuple, Union
 from dataclasses import dataclass
+import numpy as np
 from point import Point, ValuedPoint, Func, binary_search_zero
 from cell import (
     Cell,
@@ -9,13 +10,20 @@ from cell import (
 
 
 def plot_implicit(
-    fn: Func, pmin: Point, pmax: Point, min_depth: int = 5, max_quads: int = 10000
+    fn: Func,
+    pmin: Point,
+    pmax: Point,
+    min_depth: int = 5,
+    max_quads: int = 10000,
+    tol: Union[np.ndarray, None] = None,
 ):
     """Get the curve representing fn([x,y])=0 on pmin[0] ≤ x ≤ pmax[0] ∩ pmin[1] ≤ y ≤ pmax[1]
     Returns as a list of curves, where each curve is a list of points"""
-    quadtree = build_tree(2, fn, pmin, pmax, min_depth, max_quads)
+    if tol is None:
+        tol = (pmax - pmin) / 1000
+    quadtree = build_tree(2, fn, pmin, pmax, min_depth, max_quads, tol)
     triangles = Triangulator(quadtree, fn).triangulate()
-    return CurveTracer(triangles, fn).trace()
+    return CurveTracer(triangles, fn, tol).trace()
 
 
 @dataclass
@@ -209,9 +217,10 @@ class Triangulator:
 class CurveTracer:
     active_curve: List[Point]
 
-    def __init__(self, triangles: List[Triangle], fn: Func):
+    def __init__(self, triangles: List[Triangle], fn: Func, tol: np.ndarray):
         self.triangles = triangles
         self.fn = fn
+        self.tol = tol
 
     def trace(self) -> List[List[Point]]:
         curves: List[List[Point]] = []
@@ -244,6 +253,6 @@ class CurveTracer:
     def march_edge(self, p1: ValuedPoint, p2: ValuedPoint):
         # (Group 0 with negatives)
         if p1.val > 0 >= p2.val:
-            intersection, is_zero = binary_search_zero(p1, p2, self.fn)
+            intersection, is_zero = binary_search_zero(p1, p2, self.fn, self.tol)
             if is_zero:
                 self.active_curve.append(intersection)

@@ -10,7 +10,7 @@ def fn(p):
     # metaballs
     # return sum(1 / np.linalg.norm(p - q) for q in metaball_pts) - 1
     # cone with singularity at origin
-    return (p[0] - 0.5) ** 2 + p[1] ** 2 - p[2] ** 2
+    return p[0] ** 2 + p[1] ** 2 - p[2] ** 2
 
 
 pmin = np.array([-4, -4, -4])

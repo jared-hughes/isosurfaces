@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import Generator, List
+from typing import Generator, List, Union
+import numpy as np
 from point import Point, ValuedPoint, Func, binary_search_zero
 from cell import (
     Cell,
@@ -9,15 +10,22 @@ from cell import (
 
 
 def plot_isosurface(
-    fn: Func, pmin: Point, pmax: Point, min_depth: int = 5, max_cells: int = 10000
+    fn: Func,
+    pmin: Point,
+    pmax: Point,
+    min_depth: int = 5,
+    max_cells: int = 10000,
+    tol: Union[np.ndarray, None] = None,
 ):
     """Returns the surface representing fn([x,y,z])=0 on
     pmin[0] ≤ x ≤ pmax[0] ∩ pmin[1] ≤ y ≤ pmax[1] ∩ pmin[2] ≤ z ≤ pmax[2]"""
-    octtree = build_tree(3, fn, pmin, pmax, min_depth, max_cells)
+    if tol is None:
+        tol = (pmax - pmin) / 1000
+    octtree = build_tree(3, fn, pmin, pmax, min_depth, max_cells, tol)
     simplices = list(SimplexGenerator(octtree, fn).get_simplices())
     faces = []
     for simplex in simplices:
-        face = march_simplex(simplex, fn)
+        face = march_simplex(simplex, fn, tol)
         if face is not None:
             faces.append(face)
     return simplices, faces
@@ -47,12 +55,12 @@ def march_indices(simplex: List[ValuedPoint]):
         return TETRAHEDRON_TABLE[0b1111 ^ id]
 
 
-def march_simplex(simplex: List[ValuedPoint], fn: Func):
+def march_simplex(simplex: List[ValuedPoint], fn: Func, tol: np.ndarray):
     indices = march_indices(simplex)
     if indices:
         points = []
         for i, j in indices:
-            intersection, is_zero = binary_search_zero(simplex[i], simplex[j], fn)
+            intersection, is_zero = binary_search_zero(simplex[i], simplex[j], fn, tol)
             assert is_zero
             points.append(intersection.pos)
         return points

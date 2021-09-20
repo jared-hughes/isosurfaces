@@ -8,10 +8,6 @@ Point = np.ndarray
 Func = Callable[[Point], float]
 
 
-# TODO: actual x, y tolerance
-TOL = 0.002
-
-
 @dataclass
 class ValuedPoint:
     """A position associated with the corresponding function value"""
@@ -41,16 +37,17 @@ class ValuedPoint:
         return ValuedPoint(pt, fn(pt))
 
 
-def binary_search_zero(p1: ValuedPoint, p2: ValuedPoint, fn: Func):
+def binary_search_zero(p1: ValuedPoint, p2: ValuedPoint, fn: Func, tol: np.ndarray):
     """Returns a pair `(point, is_zero: bool)`
 
     Use is_zero to make sure it's not an asymptote like at x=0 on f(x,y) = 1/(xy) - 1"""
-    if np.max(np.abs(p2.pos - p1.pos)) < TOL:
+    if np.all(np.abs(p2.pos - p1.pos) < tol):
         # Binary search stop condition: too small to matter
         pt = ValuedPoint.intersectZero(p1, p2, fn)
         is_zero = pt.val == 0 or (
             np.sign(pt.val - p1.val) == np.sign(p2.val - pt.val)
-            and np.abs(pt.val < TOL)
+            # Just want to prevent ≈inf from registering as a zero
+            and np.abs(pt.val < 1e200)
         )
         return pt, is_zero
     else:
@@ -60,6 +57,6 @@ def binary_search_zero(p1: ValuedPoint, p2: ValuedPoint, fn: Func):
             return mid, True
         # (Group 0 with negatives)
         elif (mid.val > 0) == (p1.val > 0):
-            return binary_search_zero(mid, p2, fn)
+            return binary_search_zero(mid, p2, fn, tol)
         else:
-            return binary_search_zero(p1, mid, fn)
+            return binary_search_zero(p1, mid, fn, tol)
