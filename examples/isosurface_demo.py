@@ -1,4 +1,4 @@
-from isosurface import plot_isosurface
+from isosurfaces import plot_isosurface
 import numpy as np
 from manim import *
 

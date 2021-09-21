@@ -2,14 +2,14 @@ from __future__ import annotations
 from typing import List, Tuple, Union
 from dataclasses import dataclass
 import numpy as np
-from point import Point, ValuedPoint, Func, binary_search_zero
-from cell import (
+from .point import Point, ValuedPoint, Func, binary_search_zero
+from .cell import (
     Cell,
     build_tree,
 )
 
 
-def plot_implicit(
+def plot_isoline(
     fn: Func,
     pmin: Point,
     pmax: Point,
@@ -19,8 +19,12 @@ def plot_implicit(
 ):
     """Get the curve representing fn([x,y])=0 on pmin[0] ≤ x ≤ pmax[0] ∩ pmin[1] ≤ y ≤ pmax[1]
     Returns as a list of curves, where each curve is a list of points"""
+    pmin = np.asarray(pmin)
+    pmax = np.asarray(pmax)
     if tol is None:
         tol = (pmax - pmin) / 1000
+    else:
+        tol = np.asarray(tol)
     quadtree = build_tree(2, fn, pmin, pmax, min_depth, max_quads, tol)
     triangles = Triangulator(quadtree, fn).triangulate()
     return CurveTracer(triangles, fn, tol).trace()

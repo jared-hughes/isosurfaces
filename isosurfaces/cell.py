@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 from typing import Generator, List
-from point import Point, ValuedPoint, Func
+from .point import Point, ValuedPoint, Func
 from collections import deque
 
 

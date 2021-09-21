@@ -1,5 +1,11 @@
 """ Code for demo-ing and experimentation. Prepare for a mess """
-from isoline import Cell, build_tree, Triangulator, CurveTracer, plot_implicit
+from isosurfaces import plot_isoline
+from isosurfaces.isoline import (
+    Cell,
+    build_tree,
+    Triangulator,
+    CurveTracer,
+)
 import numpy as np
 import cairo
 
@@ -25,11 +31,11 @@ def g(x, y):
 
 
 # Typical usage
-curves1 = plot_implicit(
+curves1 = plot_isoline(
     lambda u: g(u[0], u[1]),
     pmin,
     pmax,
-    min_depth=5,
+    min_depth=4,
     max_quads=1000,
 )
 
@@ -38,7 +44,7 @@ def h(x, y):
     return x ** 4 + y ** 4 - np.sin(x) - np.sin(4 * y)
 
 
-curves2 = plot_implicit(lambda u: h(u[0], u[1]), pmin, pmax, 5, 1000)
+curves2 = plot_isoline(lambda u: h(u[0], u[1]), pmin, pmax, 4, 1000)
 
 
 WIDTH = 640

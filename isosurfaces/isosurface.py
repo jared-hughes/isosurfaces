@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Generator, List, Union
 import numpy as np
-from point import Point, ValuedPoint, Func, binary_search_zero
-from cell import (
+from .point import Point, ValuedPoint, Func, binary_search_zero
+from .cell import (
     Cell,
     MinimalCell,
     build_tree,
@@ -19,8 +19,12 @@ def plot_isosurface(
 ):
     """Returns the surface representing fn([x,y,z])=0 on
     pmin[0] ≤ x ≤ pmax[0] ∩ pmin[1] ≤ y ≤ pmax[1] ∩ pmin[2] ≤ z ≤ pmax[2]"""
+    pmin = np.asarray(pmin)
+    pmax = np.asarray(pmax)
     if tol is None:
         tol = (pmax - pmin) / 1000
+    else:
+        tol = np.asarray(tol)
     octtree = build_tree(3, fn, pmin, pmax, min_depth, max_cells, tol)
     simplices = list(SimplexGenerator(octtree, fn).get_simplices())
     faces = []

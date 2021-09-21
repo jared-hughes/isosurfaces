@@ -1,3 +1,7 @@
 *.pyc
 out
 media
+__pycache__
+dist
+build
+*.egg-info
