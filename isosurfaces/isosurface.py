@@ -29,9 +29,9 @@ def plot_isosurface(
     simplices = list(SimplexGenerator(octtree, fn).get_simplices())
     faces = []
     for simplex in simplices:
-        face = march_simplex(simplex, fn, tol)
-        if face is not None:
-            faces.append(face)
+        face_list = march_simplex(simplex, fn, tol)
+        if face_list is not None:
+            faces.extend(face_list)
     return simplices, faces
 
 
@@ -67,7 +67,12 @@ def march_simplex(simplex: List[ValuedPoint], fn: Func, tol: np.ndarray):
             intersection, is_zero = binary_search_zero(simplex[i], simplex[j], fn, tol)
             assert is_zero
             points.append(intersection.pos)
-        return points
+        if len(points) == 3:
+            # Single triangle
+            return [points]
+        else:
+            # quadrilateral (two triangles)
+            return [points[0], points[1], points[3]], [points[1], points[2], points[3]]
 
 
 class SimplexGenerator:

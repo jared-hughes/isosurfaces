@@ -2,7 +2,6 @@ from isosurfaces import plot_isosurface
 import numpy as np
 from manim import *
 
-
 metaball_pts = [np.array([0, 1.6, 0]), np.array([0, -1.6, 0])]
 
 
@@ -18,21 +17,28 @@ pmax = np.array([4, 4, 4])
 simplices, faces = plot_isosurface(fn, pmin, pmax, 2, 64)
 faces = list(faces)
 
+
+class Isosurface(Surface):
+    def __init__(self, faces, **kwargs):
+        # Need the right resolution to trick the surface into rendering all of the faces
+        # Each face is a triangle (list of three points)
+        num_points = len(faces) * 3
+        super().__init__(uv_func=None, resolution=(num_points, 1), **kwargs)
+        s_points = [p for face in faces for p in face]
+        # du_points and dv_points are used to compute vertex normals
+        du_points = [p for face in faces for p in face[1:] + face[:1]]
+        dv_points = [p for face in faces for p in face[2:] + face[:2]]
+        # The three lists have equal length and are stored consecutively
+        self.set_points(s_points + du_points + dv_points)
+
+
 # manim -pql isosurface_demo.py --renderer=opengl --enable_gui --fullscreen
 class DemoScene(ThreeDScene):
     def construct(self):
         self.add(ThreeDAxes())
         self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES)
 
-        print(len(faces))
-        surface = VGroup()
-        for face_points in faces:
-            face = ThreeDVMobject()
-            face.set_points_as_corners([*face_points, face_points[0]])
-            surface.add(face)
-        surface.set_fill(color=BLUE_D, opacity=1)
-        surface.set_stroke(opacity=0)
-        self.add(*surface)
+        self.add(Isosurface(faces))
 
         # sgroup = VGroup()
         # for s in simplices[:16]:
