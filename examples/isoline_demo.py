@@ -1,13 +1,9 @@
 """ Code for demo-ing and experimentation. Prepare for a mess """
-from isosurfaces import plot_isoline
-from isosurfaces.isoline import (
-    Cell,
-    build_tree,
-    Triangulator,
-    CurveTracer,
-)
-import numpy as np
 import cairo
+import numpy as np
+
+from isosurfaces import plot_isoline
+from isosurfaces.isoline import Cell, CurveTracer, Triangulator, build_tree
 
 min_depth = 5
 pmin = np.array([-8, -6])

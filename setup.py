@@ -1,4 +1,5 @@
 import pathlib
+
 from setuptools import setup
 
 # The directory containing this file
@@ -30,8 +31,10 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
+        "Typing :: Typed",
     ],
     packages=["isosurfaces"],
     include_package_data=True,
+    package_data={"isosurfaces": ["py.typed"]},
     install_requires=["numpy"],
 )
