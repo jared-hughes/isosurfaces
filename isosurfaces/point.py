@@ -2,15 +2,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, TypeVar
+from typing import Callable
 
 import numpy as np
 
 Point = np.ndarray
 Func = Callable[[Point], float]
-
-
-TValuedPoint = TypeVar("TValuedPoint", bound="ValuedPoint")
 
 
 @dataclass
@@ -20,7 +17,7 @@ class ValuedPoint:
     pos: Point
     val: float = None
 
-    def calc(self, fn: Func) -> TValuedPoint:
+    def calc(self, fn: Func) -> ValuedPoint:
         self.val = fn(self.pos)
         return self
 
@@ -28,12 +25,12 @@ class ValuedPoint:
         return f"({self.pos[0]},{self.pos[1]}; {self.val})"
 
     @classmethod
-    def midpoint(cls: type[TValuedPoint], p1: ValuedPoint, p2: ValuedPoint, fn: Func) -> TValuedPoint:
+    def midpoint(cls, p1: ValuedPoint, p2: ValuedPoint, fn: Func) -> ValuedPoint:
         mid = (p1.pos + p2.pos) / 2
         return cls(mid, fn(mid))
 
     @classmethod
-    def intersectZero(cls: type[TValuedPoint], p1: ValuedPoint, p2: ValuedPoint, fn: Func) -> TValuedPoint:
+    def intersectZero(cls, p1: ValuedPoint, p2: ValuedPoint, fn: Func) -> ValuedPoint:
         """Find the point on line p1--p2 with value 0"""
         denom = p1.val - p2.val
         k1 = -p2.val / denom
