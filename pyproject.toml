@@ -1,0 +1,9 @@
+[tool.black]
+target-version = ["py38", "py39", "py310", "py311"]
+line-length = 120
+include = "isosurfaces/"
+
+[tool.isort]
+profile = "black"
+src_paths = ["isosurfaces"]
+line_length = 120
