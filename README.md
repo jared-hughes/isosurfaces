@@ -66,7 +66,7 @@ twine upload dist/*
 
 ## Code formatting
 
-`isosurfaces` uses [`black`](https://github.com/psf/black) and [`isort`](https://github.com/PyCQA/isort). A Github Action will run to make sure it was applied/
+`isosurfaces` uses [`black`](https://github.com/psf/black) and [`isort`](https://github.com/PyCQA/isort). A Github Action will run to make sure it was applied.
 
 ## Related
 
