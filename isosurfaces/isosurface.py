@@ -58,7 +58,9 @@ def march_indices(simplex: list[ValuedPoint]) -> list[tuple[int, int]]:
         return TETRAHEDRON_TABLE[0b1111 ^ id]
 
 
-def march_simplex(simplex: list[ValuedPoint], fn: Func, tol: np.ndarray) -> list[list[Point]] | tuple[list[Point], list[Point]]:
+def march_simplex(
+    simplex: list[ValuedPoint], fn: Func, tol: np.ndarray
+) -> list[list[Point]] | tuple[list[Point], list[Point]]:
     indices = march_indices(simplex)
     if indices:
         points: list[Point] = []
@@ -93,15 +95,11 @@ class SimplexGenerator:
                     for leaf in adj:
                         if leaf is None:
                             # e.g. this is the rightmost cell with direction to the right
-                            yield from self.get_simplices_between_face(
-                                oct, oct.get_subcell(axis, dir)
-                            )
+                            yield from self.get_simplices_between_face(oct, oct.get_subcell(axis, dir))
                         else:
                             yield from self.get_simplices_between(oct, leaf, axis, dir)
 
-    def get_simplices_between(
-        self, a: Cell, b: Cell, axis: int, dir: int
-    ) -> Iterator[list[ValuedPoint]]:
+    def get_simplices_between(self, a: Cell, b: Cell, axis: int, dir: int) -> Iterator[list[ValuedPoint]]:
         """
         Parameters axis and dir are same as Cell.get_leaves_in_direction.
         They denote the direction a→b

@@ -14,10 +14,7 @@ def vertices_from_extremes(dim: int, pmin: Point, pmax: Point, fn: Func) -> list
     """Requires pmin.x ≤ pmax.x, pmin.y ≤ pmax.y"""
     w = pmax - pmin
     return [
-        ValuedPoint(np.array([pmin[d] + (i >> d & 1) * w[d] for d in range(dim)])).calc(
-            fn
-        )
-        for i in range(1 << dim)
+        ValuedPoint(np.array([pmin[d] + (i >> d & 1) * w[d] for d in range(dim)])).calc(fn) for i in range(1 << dim)
     ]
 
 
@@ -30,9 +27,7 @@ class MinimalCell:
     def get_subcell(self, axis: int, dir: int) -> MinimalCell:
         """Given an n-cell, this returns an (n-1)-cell (with half the vertices)"""
         m = 1 << axis
-        return MinimalCell(
-            self.dim - 1, [v for i, v in enumerate(self.vertices) if (i & m > 0) == dir]
-        )
+        return MinimalCell(self.dim - 1, [v for i, v in enumerate(self.vertices) if (i & m > 0) == dir])
 
     def get_dual(self, fn: Func) -> ValuedPoint:
         return ValuedPoint.midpoint(self.vertices[0], self.vertices[-1], fn)
@@ -118,9 +113,7 @@ def should_descend_deep_cell(cell: Cell, tol: np.ndarray) -> bool:
         # simple approach: only descend if we cross the isoline
         # TODO: This could very much be improved, e.g. by incorporating gradient or second-derivative
         # tests, etc., to cancel descending in approximately linear regions
-        return any(
-            np.sign(v.val) != np.sign(cell.vertices[0].val) for v in cell.vertices[1:]
-        )
+        return any(np.sign(v.val) != np.sign(cell.vertices[0].val) for v in cell.vertices[1:])
 
 
 def build_tree(
@@ -134,7 +127,7 @@ def build_tree(
 ) -> Cell:
     branching_factor = 1 << dim
     # min_depth takes precedence over max_quads
-    max_cells = max(branching_factor ** min_depth, max_cells)
+    max_cells = max(branching_factor**min_depth, max_cells)
     vertices = vertices_from_extremes(dim, pmin, pmax, fn)
     # root's childDirection is 0, even though none is reasonable
     current_quad = root = Cell(dim, vertices, 0, [], None, 0)
@@ -143,9 +136,7 @@ def build_tree(
 
     while len(quad_queue) > 0 and leaf_count < max_cells:
         current_quad = quad_queue.popleft()
-        if current_quad.depth < min_depth or should_descend_deep_cell(
-            current_quad, tol
-        ):
+        if current_quad.depth < min_depth or should_descend_deep_cell(current_quad, tol):
             current_quad.compute_children(fn)
             quad_queue.extend(current_quad.children)
             # add 4 for the new quads, subtract 1 for the old quad not being a leaf anymore

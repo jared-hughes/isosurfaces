@@ -106,14 +106,10 @@ class Triangulator:
             if a.depth < b.depth:
                 # b is smaller
                 edge_dual = self.get_edge_dual(b.vertices[2], b.vertices[0])
-                triangles = four_triangles(
-                    b.vertices[2], face_dual_b, b.vertices[0], face_dual_a, edge_dual
-                )
+                triangles = four_triangles(b.vertices[2], face_dual_b, b.vertices[0], face_dual_a, edge_dual)
             else:
                 edge_dual = self.get_edge_dual(a.vertices[3], a.vertices[1])
-                triangles = four_triangles(
-                    a.vertices[3], face_dual_b, a.vertices[1], face_dual_a, edge_dual
-                )
+                triangles = four_triangles(a.vertices[3], face_dual_b, a.vertices[1], face_dual_a, edge_dual)
             self.add_four_triangles(triangles)
 
     def triangulate_crossing_col(self, a: Cell, b: Cell) -> None:
@@ -136,23 +132,15 @@ class Triangulator:
             if a.depth < b.depth:
                 # b is smaller
                 edge_dual = self.get_edge_dual(b.vertices[0], b.vertices[1])
-                triangles = four_triangles(
-                    b.vertices[0], face_dual_b, b.vertices[1], face_dual_a, edge_dual
-                )
+                triangles = four_triangles(b.vertices[0], face_dual_b, b.vertices[1], face_dual_a, edge_dual)
             else:
                 edge_dual = self.get_edge_dual(a.vertices[2], a.vertices[3])
-                triangles = four_triangles(
-                    a.vertices[2], face_dual_b, a.vertices[3], face_dual_a, edge_dual
-                )
+                triangles = four_triangles(a.vertices[2], face_dual_b, a.vertices[3], face_dual_a, edge_dual)
             self.add_four_triangles(triangles)
 
-    def add_four_triangles(
-        self, triangles: tuple[Triangle, Triangle, Triangle, Triangle]
-    ) -> None:
+    def add_four_triangles(self, triangles: tuple[Triangle, Triangle, Triangle, Triangle]) -> None:
         for i in range(4):
-            self.next_sandwich_triangles(
-                triangles[i], triangles[(i + 1) % 4], triangles[(i + 2) % 4]
-            )
+            self.next_sandwich_triangles(triangles[i], triangles[(i + 1) % 4], triangles[(i + 2) % 4])
         self.triangles.extend(triangles)
 
     def next_sandwich_triangles(self, a: Triangle, b: Triangle, c: Triangle) -> None:
