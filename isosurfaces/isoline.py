@@ -1,12 +1,11 @@
 from __future__ import annotations
-from typing import List, Tuple, Union
+
 from dataclasses import dataclass
+
 import numpy as np
-from .point import Point, ValuedPoint, Func, binary_search_zero
-from .cell import (
-    Cell,
-    build_tree,
-)
+
+from .cell import Cell, build_tree
+from .point import Func, Point, ValuedPoint, binary_search_zero
 
 
 def plot_isoline(
@@ -15,8 +14,8 @@ def plot_isoline(
     pmax: Point,
     min_depth: int = 5,
     max_quads: int = 10000,
-    tol: Union[np.ndarray, None] = None,
-):
+    tol: np.ndarray | None = None,
+) -> list[list[Point]]:
     """Get the curve representing fn([x,y])=0 on pmin[0] ≤ x ≤ pmax[0] ∩ pmin[1] ≤ y ≤ pmax[1]
     Returns as a list of curves, where each curve is a list of points"""
     pmin = np.asarray(pmin)
@@ -32,21 +31,21 @@ def plot_isoline(
 
 @dataclass
 class Triangle:
-    vertices: List[ValuedPoint]
+    vertices: list[ValuedPoint]
     """ The order of triangle "next" is such that, when walking along the isoline in the direction of next,
     you keep positive function values on your right and negative function values on your left."""
-    next: Union[Triangle, None] = None
-    prev: Union[Triangle, None] = None
+    next: Triangle | None = None
+    prev: Triangle | None = None
     visited: bool = False
 
-    def set_next(self, other: Triangle):
+    def set_next(self, other: Triangle) -> None:
         self.next = other
         other.prev = self
 
 
 def four_triangles(
     a: ValuedPoint, b: ValuedPoint, c: ValuedPoint, d: ValuedPoint, center: ValuedPoint
-):
+) -> tuple[Triangle, Triangle, Triangle, Triangle]:
     """a,b,c,d should be clockwise oriented, with center on the inside of that quad"""
     return (
         Triangle([a, b, center]),
@@ -69,17 +68,17 @@ class Triangulator:
     does not currently implement placing dual vertices based on the gradient.
     """
 
-    def __init__(self, root: Cell, fn: Func):
-        self.triangles: List[Triangle] = []
-        self.hanging_next = {}
+    def __init__(self, root: Cell, fn: Func) -> None:
+        self.triangles: list[Triangle] = []
+        self.hanging_next: dict[bytes, Triangle] = {}
         self.root = root
         self.fn = fn
 
-    def triangulate(self):
+    def triangulate(self) -> list[Triangle]:
         self.triangulate_inside(self.root)
         return self.triangles
 
-    def triangulate_inside(self, quad: Cell):
+    def triangulate_inside(self, quad: Cell) -> None:
         if quad.children:
             for child in quad.children:
                 self.triangulate_inside(child)
@@ -88,7 +87,7 @@ class Triangulator:
             self.triangulate_crossing_col(quad.children[0], quad.children[2])
             self.triangulate_crossing_col(quad.children[1], quad.children[3])
 
-    def triangulate_crossing_row(self, a: Cell, b: Cell):
+    def triangulate_crossing_row(self, a: Cell, b: Cell) -> None:
         """Quad b should be to the right (greater x values) than quad a"""
         if a.children and b.children:
             self.triangulate_crossing_row(a.children[1], b.children[0])
@@ -107,17 +106,13 @@ class Triangulator:
             if a.depth < b.depth:
                 # b is smaller
                 edge_dual = self.get_edge_dual(b.vertices[2], b.vertices[0])
-                triangles = four_triangles(
-                    b.vertices[2], face_dual_b, b.vertices[0], face_dual_a, edge_dual
-                )
+                triangles = four_triangles(b.vertices[2], face_dual_b, b.vertices[0], face_dual_a, edge_dual)
             else:
                 edge_dual = self.get_edge_dual(a.vertices[3], a.vertices[1])
-                triangles = four_triangles(
-                    a.vertices[3], face_dual_b, a.vertices[1], face_dual_a, edge_dual
-                )
+                triangles = four_triangles(a.vertices[3], face_dual_b, a.vertices[1], face_dual_a, edge_dual)
             self.add_four_triangles(triangles)
 
-    def triangulate_crossing_col(self, a: Cell, b: Cell):
+    def triangulate_crossing_col(self, a: Cell, b: Cell) -> None:
         """Mostly a copy-paste of triangulate_crossing_row. For n-dimensions, want to pass a
         dir index into a shared triangulate_crossing_dir function instead"""
         if a.children and b.children:
@@ -137,26 +132,18 @@ class Triangulator:
             if a.depth < b.depth:
                 # b is smaller
                 edge_dual = self.get_edge_dual(b.vertices[0], b.vertices[1])
-                triangles = four_triangles(
-                    b.vertices[0], face_dual_b, b.vertices[1], face_dual_a, edge_dual
-                )
+                triangles = four_triangles(b.vertices[0], face_dual_b, b.vertices[1], face_dual_a, edge_dual)
             else:
                 edge_dual = self.get_edge_dual(a.vertices[2], a.vertices[3])
-                triangles = four_triangles(
-                    a.vertices[2], face_dual_b, a.vertices[3], face_dual_a, edge_dual
-                )
+                triangles = four_triangles(a.vertices[2], face_dual_b, a.vertices[3], face_dual_a, edge_dual)
             self.add_four_triangles(triangles)
 
-    def add_four_triangles(
-        self, triangles: Tuple[Triangle, Triangle, Triangle, Triangle]
-    ):
+    def add_four_triangles(self, triangles: tuple[Triangle, Triangle, Triangle, Triangle]) -> None:
         for i in range(4):
-            self.next_sandwich_triangles(
-                triangles[i], triangles[(i + 1) % 4], triangles[(i + 2) % 4]
-            )
+            self.next_sandwich_triangles(triangles[i], triangles[(i + 1) % 4], triangles[(i + 2) % 4])
         self.triangles.extend(triangles)
 
-    def next_sandwich_triangles(self, a: Triangle, b: Triangle, c: Triangle):
+    def next_sandwich_triangles(self, a: Triangle, b: Triangle, c: Triangle) -> None:
         """Find the "next" triangle for the triangle b. See Triangle for a description of the curve orientation.
 
         We assume the triangles are oriented such that they share common vertices center←[2]≡b[2]≡c[2]
@@ -191,7 +178,7 @@ class Triangulator:
             else:
                 self.hanging_next[id] = b
 
-    def get_edge_dual(self, p1: ValuedPoint, p2: ValuedPoint):
+    def get_edge_dual(self, p1: ValuedPoint, p2: ValuedPoint) -> ValuedPoint:
         """Returns the dual point on an edge p1--p2"""
         if (p1.val > 0) != (p1.val > 0):
             # The edge crosses the isoline, so take the midpoint
@@ -213,21 +200,21 @@ class Triangulator:
             v2 = ValuedPoint(p2.pos, df2)
             return ValuedPoint.intersectZero(v1, v2, self.fn)
 
-    def get_face_dual(self, quad: Cell):
+    def get_face_dual(self, quad: Cell) -> ValuedPoint:
         # TODO: proper face dual
         return ValuedPoint.midpoint(quad.vertices[0], quad.vertices[-1], self.fn)
 
 
 class CurveTracer:
-    active_curve: List[Point]
+    active_curve: list[ValuedPoint]
 
-    def __init__(self, triangles: List[Triangle], fn: Func, tol: np.ndarray):
+    def __init__(self, triangles: list[Triangle], fn: Func, tol: np.ndarray) -> None:
         self.triangles = triangles
         self.fn = fn
         self.tol = tol
 
-    def trace(self) -> List[List[Point]]:
-        curves: List[List[Point]] = []
+    def trace(self) -> list[list[Point]]:
+        curves: list[list[ValuedPoint]] = []
         for triangle in self.triangles:
             if not triangle.visited and triangle.next is not None:
                 self.active_curve = []
@@ -236,7 +223,7 @@ class CurveTracer:
                 curves.append(self.active_curve)
         return [[v.pos for v in curve] for curve in curves]
 
-    def march_triangle(self, triangle: Triangle):
+    def march_triangle(self, triangle: Triangle) -> None:
         start_triangle = triangle
         closed_loop = False
         # Iterate backwards to the start of a connected curve
@@ -254,7 +241,7 @@ class CurveTracer:
             # close back the loop
             self.active_curve.append(self.active_curve[0])
 
-    def march_edge(self, p1: ValuedPoint, p2: ValuedPoint):
+    def march_edge(self, p1: ValuedPoint, p2: ValuedPoint) -> None:
         # (Group 0 with negatives)
         if p1.val > 0 >= p2.val:
             intersection, is_zero = binary_search_zero(p1, p2, self.fn, self.tol)

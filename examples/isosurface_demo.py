@@ -1,6 +1,7 @@
-from isosurfaces import plot_isosurface
 import numpy as np
 from manim import *
+
+from isosurfaces import plot_isosurface
 
 metaball_pts = [np.array([0, 1.6, 0]), np.array([0, -1.6, 0])]
 
