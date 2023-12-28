@@ -180,7 +180,7 @@ class Triangulator:
 
     def get_edge_dual(self, p1: ValuedPoint, p2: ValuedPoint) -> ValuedPoint:
         """Returns the dual point on an edge p1--p2"""
-        if (p1.val > 0) != (p1.val > 0):
+        if (p1.val > 0) != (p2.val > 0):
             # The edge crosses the isoline, so take the midpoint
             return ValuedPoint.midpoint(p1, p2, self.fn)
         dt = 0.01
