@@ -1,7 +1,7 @@
 [tool.black]
 target-version = ["py38", "py39", "py310", "py311"]
 line-length = 120
-include = "isosurfaces/|examples/"
+include = "isosurfaces/|.*_demo.py"
 
 [tool.isort]
 profile = "black"

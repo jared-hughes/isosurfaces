@@ -1,6 +1,7 @@
 """ Code for demo-ing and experimentation. Prepare for a mess """
 import cairo
 import numpy as np
+import os
 
 from isosurfaces import plot_isoline
 from isosurfaces.isoline import Cell, CurveTracer, Triangulator, build_tree
@@ -113,7 +114,8 @@ def draw_curves(c, curves_list, rgb):
         c.stroke()
     c.restore()
 
-
+if not os.path.exists("out"):
+    os.makedir("out")
 with cairo.SVGSurface("out/demo.svg", WIDTH, HEIGHT) as surface:
     c = cairo.Context(surface)
     setup_context(c)

@@ -42,8 +42,8 @@ for curve in curves:
 ## Dev examples
 
 ```sh
-python3 examples/isoline_demo.py && xdg-open assets/demo.svg
-manim -pql examples/isosurface_demo.py --renderer=opengl --enable_gui
+python3 isoline_demo.py && xdg-open assets/demo.svg
+manim -pql isosurface_demo.py --renderer=opengl --enable_gui
 ```
 
 Pyflakes, allowing manim star imports
