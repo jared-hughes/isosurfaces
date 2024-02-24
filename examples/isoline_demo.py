@@ -23,7 +23,7 @@ curves = CurveTracer(triangles, fn, tol).trace()
 
 
 def g(x, y):
-    return x ** 3 - x - y ** 2
+    return x**3 - x - y**2
 
 
 # Typical usage
@@ -37,7 +37,7 @@ curves1 = plot_isoline(
 
 
 def h(x, y):
-    return x ** 4 + y ** 4 - np.sin(x) - np.sin(4 * y)
+    return x**4 + y**4 - np.sin(x) - np.sin(4 * y)
 
 
 curves2 = plot_isoline(lambda u: h(u[0], u[1]), pmin, pmax, 4, 1000)
@@ -101,9 +101,7 @@ def draw_bg(c):
 
 
 def draw_curves(c, curves_list, rgb):
-    print(
-        "drawing", sum(map(len, curves_list)), "segments in", len(curves_list), "curves"
-    )
+    print("drawing", sum(map(len, curves_list)), "segments in", len(curves_list), "curves")
     c.set_source_rgb(*rgb)
     # draw curves
     c.save()
