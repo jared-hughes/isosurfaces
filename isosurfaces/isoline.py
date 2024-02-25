@@ -25,7 +25,7 @@ def plot_isoline(
     else:
         tol = np.asarray(tol)
     quadtree = build_tree(2, fn, pmin, pmax, min_depth, max_quads, tol)
-    triangles = Triangulator(quadtree, fn).triangulate()
+    triangles = Triangulator(quadtree, fn, tol).triangulate()
     return CurveTracer(triangles, fn, tol).trace()
 
 
@@ -35,12 +35,9 @@ class Triangle:
     """ The order of triangle "next" is such that, when walking along the isoline in the direction of next,
     you keep positive function values on your right and negative function values on your left."""
     next: Triangle | None = None
+    next_bisect_point: ValuedPoint | None = None
     prev: Triangle | None = None
     visited: bool = False
-
-    def set_next(self, other: Triangle) -> None:
-        self.next = other
-        other.prev = self
 
 
 def four_triangles(
@@ -68,11 +65,12 @@ class Triangulator:
     does not currently implement placing dual vertices based on the gradient.
     """
 
-    def __init__(self, root: Cell, fn: Func) -> None:
+    def __init__(self, root: Cell, fn: Func, tol: np.ndarray) -> None:
         self.triangles: list[Triangle] = []
         self.hanging_next: dict[bytes, Triangle] = {}
         self.root = root
         self.fn = fn
+        self.tol = tol
 
     def triangulate(self) -> list[Triangle]:
         self.triangulate_inside(self.root)
@@ -143,10 +141,20 @@ class Triangulator:
             self.next_sandwich_triangles(triangles[i], triangles[(i + 1) % 4], triangles[(i + 2) % 4])
         self.triangles.extend(triangles)
 
+    def set_next(self, tri1: Triangle, tri2: Triangle, vpos: ValuedPoint, vneg: ValuedPoint) -> None:
+        if not vpos.val > 0 >= vneg.val:
+            return
+        intersection, is_zero = binary_search_zero(vpos, vneg, self.fn, self.tol)
+        if not is_zero:
+            return
+        tri1.next_bisect_point = intersection
+        tri1.next = tri2
+        tri2.prev = tri1
+
     def next_sandwich_triangles(self, a: Triangle, b: Triangle, c: Triangle) -> None:
         """Find the "next" triangle for the triangle b. See Triangle for a description of the curve orientation.
 
-        We assume the triangles are oriented such that they share common vertices center←[2]≡b[2]≡c[2]
+        We assume the triangles are oriented such that they share common vertices center←a[2]≡b[2]≡c[2]
         and x←a[1]≡b[0], y←b[1]≡c[0]"""
 
         center = b.vertices[2]
@@ -156,10 +164,10 @@ class Triangulator:
         # Simple connections: inside the same four triangles
         # (Group 0 with negatives)
         if center.val > 0 >= y.val:
-            b.set_next(c)
+            self.set_next(b, c, center, y)
         # (Group 0 with negatives)
         if x.val > 0 >= center.val:
-            b.set_next(a)
+            self.set_next(b, a, x, center)
 
         # More difficult connections: complete a hanging connection
         # or wait for another triangle to complete this
@@ -169,12 +177,14 @@ class Triangulator:
         # (Group 0 with negatives)
         if y.val > 0 >= x.val:
             if id in self.hanging_next:
-                b.set_next(self.hanging_next[id])
+                self.set_next(b, self.hanging_next[id], y, x)
+                del self.hanging_next[id]
             else:
                 self.hanging_next[id] = b
         elif y.val <= 0 < x.val:
             if id in self.hanging_next:
-                self.hanging_next[id].set_next(b)
+                self.set_next(self.hanging_next[id], b, x, y)
+                del self.hanging_next[id]
             else:
                 self.hanging_next[id] = b
 
@@ -233,17 +243,10 @@ class CurveTracer:
                 closed_loop = True
                 break
         while triangle is not None and not triangle.visited:
-            for i in range(3):
-                self.march_edge(triangle.vertices[i], triangle.vertices[(i + 1) % 3])
+            if triangle.next_bisect_point is not None:
+                self.active_curve.append(triangle.next_bisect_point)
             triangle.visited = True
             triangle = triangle.next
         if closed_loop:
             # close back the loop
             self.active_curve.append(self.active_curve[0])
-
-    def march_edge(self, p1: ValuedPoint, p2: ValuedPoint) -> None:
-        # (Group 0 with negatives)
-        if p1.val > 0 >= p2.val:
-            intersection, is_zero = binary_search_zero(p1, p2, self.fn, self.tol)
-            if is_zero:
-                self.active_curve.append(intersection)
