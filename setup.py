@@ -19,10 +19,11 @@ README = (
 # This call to setup() does all the work
 setup(
     name="isosurfaces",
-    version="0.1.0",
+    version="0.1.1",
     description="Construct isolines/isosurfaces over a 2D/3D scalar field defined by a function (not a uniform grid)",
     long_description=README,
     long_description_content_type="text/markdown",
+    license_files=("LICENSE",),
     url="https://github.com/jared-hughes/isosurfaces",
     author="Jared Hughes",
     author_email="jahughes.dev@gmail.com",
