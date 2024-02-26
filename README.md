@@ -42,7 +42,7 @@ for curve in curves:
 ## Dev examples
 
 ```sh
-python3 isoline_demo.py && xdg-open assets/demo.svg
+python3 isoline_demo.py && xdg-open out/demo.svg
 manim -pql isosurface_demo.py --renderer=opengl --enable_gui
 ```
 

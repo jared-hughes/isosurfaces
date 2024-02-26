@@ -168,7 +168,7 @@ def draw_curve_vertices(c, curves_list, rgb):
 
 
 if not os.path.exists("out"):
-    os.makedir("out")
+    os.mkdir("out")
 with cairo.SVGSurface("out/demo.svg", WIDTH, HEIGHT) as surface:
     c = cairo.Context(surface)
     setup_context(c)
